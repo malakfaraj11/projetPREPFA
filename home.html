@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpyall - Plateforme de Services</title>
+    <link rel="stylesheet" href="./index.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navigation -->
+    <nav id="mainNav" class="sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 onclick="showSection('home')" class="app-logo cursor-pointer">
+                HELP<span class="logo-part-2">YALL</span>
+            </h1>
+            
+            <div id="navButtons" class="flex items-center gap-4">
+                <!-- Boutons selon le rôle -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Section Authentification -->
+    <div id="authSection" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="modal-glass rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full scale-in-center">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                    <i class="fa-solid fa-handshake text-white text-3xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2 drop-shadow-lg" id="authTitle">Connexion</h2>
+                <p class="text-white/90" id="authSubtitle">Accédez à votre compte</p>
+            </div>
+
+            <div id="authTabs" class="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
+                <button onclick="switchAuthMode('login')" id="loginTab" class="flex-1 py-2 px-4 rounded-lg font-semibold transition text-white" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                    Connexion
+                </button>
+                <button onclick="switchAuthMode('register')" id="registerTab" class="flex-1 py-2 px-4 rounded-lg font-semibold transition text-gray-600 hover:text-gray-800">
+                    Inscription
+                </button>
+            </div>
+
+            <div id="registerTypeSelector" class="hidden mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Je souhaite m'inscrire en tant que :</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="selectRegisterType('client')" class="register-type-btn p-4 border-2 border-gray-200 rounded-xl transition text-center" style="border-color: rgba(139, 92, 246, 0.3);">
+                        <i class="fa-solid fa-user text-2xl mb-2 text-gray-400"></i>
+                        <p class="font-semibold text-sm">Client</p>
+                    </button>
+                    <button onclick="selectRegisterType('provider')" class="register-type-btn p-4 border-2 border-gray-200 rounded-xl transition text-center" style="border-color: rgba(139, 92, 246, 0.3);">
+                        <i class="fa-solid fa-briefcase text-2xl mb-2 text-gray-400"></i>
+                        <p class="font-semibold text-sm">Prestataire</p>
+                    </button>
+                </div>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" id="authEmail" required class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Mot de passe</label>
+                    <input type="password" id="authPassword" required class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div id="registerFields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nom complet</label>
+                        <input type="text" id="authName" class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Téléphone</label>
+                        <input type="tel" id="authPhone" class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                <button type="submit" class="w-full text-white py-3 rounded-xl font-bold transition shadow-lg" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);" onmouseover="this.style.background='linear-gradient(135deg, #7c3aed 0%, #db2777 100%)'" onmouseout="this.style.background='linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'">
+                    <span id="authSubmitText">Se connecter</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section Inscription Prestataire -->
+    <div id="providerRegisterSection" class="hidden min-h-screen flex items-center justify-center p-4 py-12">
+        <div class="modal-glass rounded-3xl shadow-2xl p-8 md:p-12 max-w-3xl w-full scale-in-center">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                    <i class="fa-solid fa-briefcase text-white text-3xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Devenir Prestataire</h2>
+                <p class="text-gray-600">Créez votre profil professionnel en quelques étapes</p>
+            </div>
+
+            <form id="providerRegisterForm" onsubmit="handleProviderRegister(event)" class="space-y-6">
+                <!-- Informations de base -->
+                <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Informations personnelles</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nom complet *</label>
+                        <input type="text" id="providerRegisterName" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+                        <input type="email" id="providerRegisterEmail" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Téléphone *</label>
+                        <input type="tel" id="providerRegisterPhone" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">CIN (Carte d'Identité Nationale) *</label>
+                        <input type="text" id="providerRegisterCIN" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400"
+                               placeholder="Ex: AB123456">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Mot de passe *</label>
+                        <input type="password" id="providerRegisterPassword" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                    </div>
+                </div>
+
+                <!-- Informations professionnelles -->
+                <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Informations professionnelles</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Métier *</label>
+                        <select id="providerRegisterJob" required 
+                                class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                            <option value="">Sélectionner un métier</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Tarif horaire (€) *</label>
+                        <input type="number" id="providerRegisterPrice" required min="10" step="1"
+                               class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400"
+                               placeholder="Ex: 35">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                        <textarea id="providerRegisterDescription" rows="3" 
+                                  class="w-full p-3 border border-gray-300 rounded-xl outline-none resize-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400"
+                                  placeholder="Décrivez vos compétences et votre expérience..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Disponibilités -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Horaires de disponibilité</h3>
+                    <p class="text-sm text-gray-600 mb-4">Sélectionnez vos jours et créneaux horaires disponibles</p>
+                    <div id="providerAvailabilityGrid" class="space-y-3">
+                        <!-- Sera généré dynamiquement -->
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="button" onclick="showSection('auth')" 
+                            class="flex-1 py-3 px-6 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition">
+                        Retour
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 py-3 px-6 rounded-xl font-bold text-white transition shadow-lg" 
+                            style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);"
+                            onmouseover="this.style.background='linear-gradient(135deg, #7c3aed 0%, #db2777 100%)'" 
+                            onmouseout="this.style.background='linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'">
+                        Créer mon compte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section Accueil Client -->
+    <div id="homeSection">
+        <header class="py-16 md:py-24 px-6">
+            <div class="max-w-4xl mx-auto text-center mb-12">
+                <h2 class="main-title mb-4">Le bon professionnel, au bon moment , directement chez vous.</h2>
+                <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Trouvez rapidement le professionnel qu'il vous faut parmi des milliers de prestataires vérifiés
+                </p>
+            </div>
+            
+            <!-- Barre de recherche améliorée -->
+            <div class="search-container-wrapper">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Rechercher un métier, un professionnel ou une ville..." 
+                               class="search-input">
+                    </div>
+                    <div class="mt-4 flex flex-wrap justify-center gap-2" id="popularCategories">
+                        <!-- Catégories populaires dynamiques -->
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Section Profils de Métiers -->
+        <section class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h3 class="text-2xl md:text-3xl font-semibold text-gray-800 text-center md:text-left">Découvrez nos métiers</h3>
+                <button onclick="showSection('providerRegister')" 
+                        class="provider-cta-btn">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Devenir Prestataire</span>
+                </button>
+            </div>
+            <div id="jobsProfiles" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-12">
+                <!-- Les profils de métiers seront générés dynamiquement -->
+            </div>
+        </section>
+
+        <div class="max-w-7xl mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl shadow-sm border border-gray-100 mb-8">
+            <p class="font-medium text-gray-700">
+                <span id="resultCount" class="font-semibold text-gray-900">0</span> professionnels trouvés
+            </p>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <select id="categoryFilter" onchange="filterProviders()" 
+                        class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-700 outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100 transition">
+                    <option value="all">Tous les métiers</option>
+                </select>
+                
+                <select id="sortFilter" onchange="filterProviders()" 
+                        class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-700 outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100 transition">
+                    <option value="rating">Meilleures notes ⭐</option>
+                    <option value="priceAsc">Prix : Croissant 📈</option>
+                    <option value="priceDesc">Prix : Décroissant 📉</option>
+                    <option value="name">Nom (A-Z)</option>
+                </select>
+            </div>
+        </div>
+
+        <main class="max-w-7xl mx-auto p-6">
+            <div id="providerList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+        </main>
+    </div>
+
+    <!-- Section Profil Prestataire -->
+    <div id="providerProfileSection" class="hidden max-w-4xl mx-auto p-6 min-h-screen">
+        <button onclick="showSection('home')" class="mb-6 font-bold flex items-center gap-2" style="color: #8b5cf6;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#8b5cf6'">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+        </button>
+        <div id="providerProfileContent" class="glass rounded-2xl shadow-lg p-8">
+            <!-- Contenu dynamique -->
+        </div>
+    </div>
+
+    <!-- Section Compte Client -->
+    <div id="clientAccountSection" class="hidden max-w-6xl mx-auto p-6 min-h-screen">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Mon Compte</h2>
+            <p class="text-gray-500">Gérez vos réservations et factures</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="glass rounded-xl shadow-md p-6 text-center">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                    <i class="fa-solid fa-calendar-check text-white text-2xl"></i>
+                </div>
+                <p class="text-3xl font-bold text-gray-800" id="totalBookings">0</p>
+                <p class="text-gray-500 text-sm">Réservations</p>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-euro-sign text-green-600 text-2xl"></i>
+                </div>
+                <p class="text-3xl font-bold text-gray-800" id="totalSpent">0€</p>
+                <p class="text-gray-500 text-sm">Total dépensé</p>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6 text-center">
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-star text-yellow-600 text-2xl"></i>
+                </div>
+                <p class="text-3xl font-bold text-gray-800" id="avgRating">0</p>
+                <p class="text-gray-500 text-sm">Note moyenne</p>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Historique des réservations</h3>
+            <div id="bookingHistory" class="space-y-4">
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Accueil Prestataire -->
+    <div id="providerHomeSection" class="hidden min-h-screen">
+        <header class="py-12 px-6 bg-gradient-to-br from-pink-50 to-purple-50">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <div>
+                        <h2 class="text-4xl font-bold text-gray-800 mb-2">Bienvenue sur votre espace</h2>
+                        <p class="text-lg text-gray-600" id="providerWelcomeName">Prestataire</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="showSection('providerDashboard')" class="px-6 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                            <i class="fa-solid fa-chart-line mr-2"></i>
+                            Tableau de bord
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistiques rapides -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fa-solid fa-calendar-check text-2xl text-pink-600"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800" id="providerHomeBookings">0</p>
+                        <p class="text-sm text-gray-600">Réservations</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fa-solid fa-euro-sign text-2xl text-green-600"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800" id="providerHomeRevenue">0€</p>
+                        <p class="text-sm text-gray-600">Revenus totaux</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fa-solid fa-star text-2xl text-yellow-500"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800" id="providerHomeRating">0</p>
+                        <p class="text-sm text-gray-600">Note moyenne</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fa-solid fa-clock text-2xl text-blue-600"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800" id="providerHomePending">0</p>
+                        <p class="text-sm text-gray-600">En attente</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto p-6">
+            <!-- Réservations récentes -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Réservations récentes</h3>
+                    <button onclick="showSection('providerDashboard')" class="text-pink-600 hover:text-pink-700 font-semibold text-sm">
+                        Voir tout <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+                <div id="providerHomeBookingsList" class="space-y-4">
+                    <!-- Réservations dynamiques -->
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-card rounded-xl p-6 cursor-pointer hover:transform hover:scale-105 transition" onclick="showSection('providerDashboard')">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                            <i class="fa-solid fa-user-edit text-pink-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 mb-1">Gérer mon profil</h4>
+                            <p class="text-sm text-gray-600">Modifier vos informations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card rounded-xl p-6 cursor-pointer hover:transform hover:scale-105 transition" onclick="showSection('providerDashboard')">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fa-solid fa-calendar-alt text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 mb-1">Mes disponibilités</h4>
+                            <p class="text-sm text-gray-600">Gérer votre planning</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card rounded-xl p-6 cursor-pointer hover:transform hover:scale-105 transition">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fa-solid fa-chart-bar text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 mb-1">Statistiques</h4>
+                            <p class="text-sm text-gray-600">Voir vos performances</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Section Dashboard Prestataire -->
+    <div id="providerDashboardSection" class="hidden max-w-7xl mx-auto p-6 min-h-screen">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Tableau de bord</h2>
+            <p class="text-gray-500">Gérez vos prestations et réservations</p>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div class="glass rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Réservations</p>
+                        <p class="text-2xl font-bold text-gray-800" id="providerBookings">0</p>
+                    </div>
+                    <i class="fa-solid fa-calendar text-2xl" style="color: #8b5cf6;"></i>
+                </div>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Revenus</p>
+                        <p class="text-2xl font-bold text-gray-800" id="providerRevenue">0€</p>
+                    </div>
+                    <i class="fa-solid fa-euro-sign text-green-500 text-2xl"></i>
+                </div>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Note moyenne</p>
+                        <p class="text-2xl font-bold text-gray-800" id="providerRating">0</p>
+                    </div>
+                    <i class="fa-solid fa-star text-yellow-500 text-2xl"></i>
+                </div>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Statut</p>
+                        <p class="text-sm font-bold" id="providerStatus">En attente</p>
+                    </div>
+                    <i class="fa-solid fa-circle-check text-gray-400 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="glass rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Mon Profil</h3>
+                <div id="providerProfileForm" class="space-y-4">
+                    <!-- Formulaire dynamique -->
+                </div>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Disponibilités</h3>
+                <div id="availabilityCalendar" class="space-y-4">
+                    <!-- Planning dynamique -->
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Réservations reçues</h3>
+            <div id="providerBookingsList" class="space-y-4">
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Admin -->
+    <div id="adminSection" class="hidden max-w-7xl mx-auto p-6 min-h-screen">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Administration</h2>
+            <p class="text-gray-500">Gestion de la plateforme</p>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div class="glass rounded-xl shadow-md p-6">
+                <p class="text-gray-500 text-sm">Utilisateurs</p>
+                <p class="text-2xl font-bold text-gray-800" id="adminUsers">0</p>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <p class="text-gray-500 text-sm">Prestataires</p>
+                <p class="text-2xl font-bold text-gray-800" id="adminProviders">0</p>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <p class="text-gray-500 text-sm">Réservations</p>
+                <p class="text-2xl font-bold text-gray-800" id="adminBookings">0</p>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <p class="text-gray-500 text-sm">Métiers</p>
+                <p class="text-2xl font-bold text-gray-800" id="adminJobs">0</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="glass rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Gestion des prestataires</h3>
+                <div id="adminProvidersList" class="space-y-3 max-h-96 overflow-y-auto">
+                </div>
+            </div>
+            <div class="glass rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Gestion des métiers</h3>
+                <div class="space-y-4">
+                    <div class="flex gap-2">
+                        <input type="text" id="newJobInput" placeholder="Nouveau métier" 
+                               class="flex-1 p-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
+                        <button onclick="addJob()" class="text-white px-4 py-2 rounded-lg transition" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);" onmouseover="this.style.background='linear-gradient(135deg, #7c3aed 0%, #db2777 100%)'" onmouseout="this.style.background='linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'">
+                            Ajouter
+                        </button>
+                    </div>
+                    <div id="jobsList" class="space-y-2 max-h-64 overflow-y-auto">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Statistiques</h3>
+            <div id="adminStats" class="grid md:grid-cols-3 gap-4">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modale Réservation -->
+    <div id="bookingModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div class="modal-glass rounded-3xl p-8 max-w-md w-full shadow-2xl scale-in-center max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-1 text-white drop-shadow-lg">Confirmer la réservation</h2>
+            <p id="selectedProName" class="font-bold text-lg mb-6" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Date et heure souhaitées</label>
+                    <input type="datetime-local" id="appointmentTime" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Durée (heures)</label>
+                    <input type="number" id="appointmentDuration" value="1" min="1" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="p-4 rounded-2xl border glass-strong">
+                    <label class="block text-xs font-bold uppercase mb-2 text-white drop-shadow">Paiement Sécurisé</label>
+                    <input type="text" id="cardNumber" placeholder="Numéro de carte" maxlength="19" 
+                           class="w-full p-3 mb-2 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-purple-500">
+                    <div class="flex gap-2">
+                        <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" 
+                               class="w-1/2 p-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="text" id="cardCVC" placeholder="CVC" maxlength="3" 
+                               class="w-1/2 p-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-8">
+                <button onclick="processPayment()" class="flex-[2] text-white py-4 rounded-2xl font-bold transition" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);" onmouseover="this.style.background='linear-gradient(135deg, #7c3aed 0%, #db2777 100%)'" onmouseout="this.style.background='linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'">
+                    Payer <span id="totalPrice">0</span>€
+                </button>
+                <button onclick="closeModal()" class="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-bold hover:bg-gray-200 transition">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Notation -->
+    <div id="ratingModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+        <div class="modal-glass rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl scale-in-center">
+            <div class="w-20 h-20 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                ★
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Votre avis</h2>
+            <p class="text-gray-500 mb-6 italic">Comment s'est passée votre prestation avec <span id="ratingProName" class="font-bold text-gray-800"></span> ?</p>
+            
+            <div class="flex justify-center gap-2 mb-4 text-4xl">
+                <button onclick="setRating(1)" class="star text-gray-200 transition hover:scale-125">★</button>
+                <button onclick="setRating(2)" class="star text-gray-200 transition hover:scale-125">★</button>
+                <button onclick="setRating(3)" class="star text-gray-200 transition hover:scale-125">★</button>
+                <button onclick="setRating(4)" class="star text-gray-200 transition hover:scale-125">★</button>
+                <button onclick="setRating(5)" class="star text-gray-200 transition hover:scale-125">★</button>
+            </div>
+            <textarea id="ratingComment" placeholder="Votre commentaire (optionnel)" 
+                      class="w-full p-3 border rounded-xl mb-4 outline-none resize-none focus:ring-2 focus:ring-purple-500"></textarea>
+
+            <button onclick="submitRating()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition shadow-lg">
+                Enregistrer mon avis
+            </button>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
+

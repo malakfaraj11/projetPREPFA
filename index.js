@@ -122,21 +122,24 @@ async function handleAuth(event) {
             const text = await response.text();
             console.log("LOGIN RESPONSE =>", response.status, text);
 
-            let user = null;
+            let result = null;
             try {
-                user = JSON.parse(text);
+                result = JSON.parse(text);
             } catch {
                 showToast("Réponse invalide du serveur", "error");
                 return;
             }
 
-            if (response.ok) {
-                currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(user));
+            if (result.success && result.user) {
+                currentUser = result.user;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 showToast("Connexion réussie ✔️", "success");
-                initializeApp();
+                // Redirection vers home.html
+                setTimeout(() => {
+                    window.location.href = '/home.html';
+                }, 500);
             } else {
-                showToast(user.error || "Identifiants incorrects", "error");
+                showToast(result.message || "Identifiants incorrects", "error");
             }
         } catch (err) {
             console.error(err);
@@ -183,21 +186,24 @@ async function handleAuth(event) {
         const text = await response.text();
         console.log("REGISTER RESPONSE =>", response.status, text);
 
-        let newUser = null;
+        let result = null;
         try {
-            newUser = JSON.parse(text);
+            result = JSON.parse(text);
         } catch {
             showToast("Réponse serveur invalide", "error");
             return;
         }
 
-        if (response.ok) {
-            currentUser = newUser;
-            localStorage.setItem('currentUser', JSON.stringify(newUser));
+        if (result.success && result.user) {
+            currentUser = result.user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
             showToast("Inscription réussie ✔️", "success");
-            initializeApp();
+            // Redirection vers home.html
+            setTimeout(() => {
+                window.location.href = '/home.html';
+            }, 500);
         } else {
-            showToast(newUser.error || "Erreur d'inscription", "error");
+            showToast(result.message || "Erreur d'inscription", "error");
         }
 
     } catch (err) {
@@ -246,15 +252,24 @@ function showSection(section) {
 }
 
 function initializeApp() {
+    if (!currentUser) return;
+    
     loadUsers();
     updateNav();
     
+    // Cacher la section d'authentification
+    document.getElementById('authSection').classList.add('hidden');
+    
+    // Rediriger selon le rôle
     if (currentUser.role === 'client') {
         showSection('home');
     } else if (currentUser.role === 'provider') {
         showSection('providerHome');
     } else if (currentUser.role === 'admin') {
         showSection('admin');
+    } else {
+        // Par défaut, rediriger vers l'accueil
+        showSection('home');
     }
 }
 

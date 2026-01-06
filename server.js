@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const bcrypt = require("bcrypt");
-const port = 3001;
 require("dotenv").config();
 
 const { User, Booking, Job } = require("./models/Schemas");
@@ -11,6 +10,9 @@ const { User, Booking, Job } = require("./models/Schemas");
 const app = express();
 app.use(express.json());
 // Middlewares
+app.use(cors());
+// Servir les fichiers statiques (CSS, JS, etc.)
+app.use(express.static(__dirname));
 
 
 // =============================
@@ -162,7 +164,8 @@ app.get("/", (req, res) => {
 // =============================
 // 🚀 LANCEMENT SERVEUR
 // =============================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`📄 Interface web disponible sur http://localhost:${PORT}`);
 });
